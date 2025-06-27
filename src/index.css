@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply text-gray-900 bg-white m-0 min-h-screen;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold leading-tight;
+  }
+  
+  /* Optimize font loading */
+  @font-face {
+    font-family: 'Inter';
+    font-display: swap;
+  }
+  
+  @font-face {
+    font-family: 'Playfair Display';
+    font-display: swap;
+  }
+}
+
+@layer utilities {
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out forwards;
+  }
+  
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Performance optimizations */
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  .gpu-accelerated {
+    transform: translateZ(0);
+  }
+  
+  /* Text truncation utility */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Grid utilities for consistent layouts */
+  .auto-rows-fr {
+    grid-auto-rows: 1fr;
+  }
+  
+  /* Consistent aspect ratios */
+  .aspect-4-3 {
+    aspect-ratio: 4 / 3;
+  }
+  
+  .aspect-16-9 {
+    aspect-ratio: 16 / 9;
+  }
+  
+  .aspect-square {
+    aspect-ratio: 1 / 1;
+  }
+  
+  /* Container queries for responsive design */
+  .container-normal {
+    container-type: normal;
+  }
+  
+  /* Improved focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+  
+  /* Consistent spacing for cards */
+  .card-spacing {
+    @apply p-6;
+  }
+  
+  .card-spacing-sm {
+    @apply p-4;
+  }
+  
+  .card-spacing-lg {
+    @apply p-8;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Ensure consistent image loading */
+  img {
+    @apply block max-w-full h-auto;
+  }
+  
+  /* Prevent layout shift during image loading */
+  .image-container {
+    @apply relative overflow-hidden bg-gray-100;
+  }
+  
+  .image-container::before {
+    content: '';
+    @apply absolute inset-0 bg-gray-200 animate-pulse;
+  }
+  
+  .image-container img {
+    @apply relative z-10;
+  }
+  
+  /* Consistent property card styling */
+  .property-card-image {
+    @apply aspect-[4/3] w-full object-cover bg-gray-100;
+  }
+  
+  .property-card-container {
+    @apply h-full flex flex-col;
+  }
+  
+  .property-card-content {
+    @apply flex-grow;
+  }
+  
+  .property-card-footer {
+    @apply mt-auto;
+  }
+}
