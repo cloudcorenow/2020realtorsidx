@@ -57,6 +57,18 @@ class ApiService {
     return this.request(`/idx/property/${listingId}`);
   }
 
+  async getIDXFeaturedProperties() {
+    return this.request('/idx/featured');
+  }
+
+  async getAllIDXListings() {
+    return this.request('/idx/listings');
+  }
+
+  async getIDXSoldPending() {
+    return this.request('/idx/soldpending');
+  }
+
   async syncIDXProperties() {
     return this.request('/idx/sync', { method: 'POST' });
   }
@@ -124,9 +136,63 @@ class ApiService {
     });
   }
 
+  async getContactSubmissions() {
+    return this.request('/contact/submissions');
+  }
+
+  async getTourRequests() {
+    return this.request('/contact/tour-requests');
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');
+  }
+
+  // Database operations
+  async runDatabaseMigration() {
+    return this.request('/admin/migrate', { method: 'POST' });
+  }
+
+  async getDatabaseStatus() {
+    return this.request('/admin/db-status');
+  }
+
+  // Utility methods
+  async uploadFile(file: File, path: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', path);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    return response.json();
+  }
+
+  // Batch operations
+  async batchRequest<T>(requests: Array<{ endpoint: string; options?: RequestInit }>): Promise<T[]> {
+    const promises = requests.map(({ endpoint, options }) => 
+      this.request<T>(endpoint, options).catch(error => {
+        console.error(`Batch request failed for ${endpoint}:`, error);
+        return null;
+      })
+    );
+
+    const results = await Promise.allSettled(promises);
+    return results
+      .filter((result): result is PromiseFulfilledResult<T> => 
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => result.value);
   }
 }
 
