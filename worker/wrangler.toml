@@ -1,0 +1,24 @@
+name = "2020-realtors-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "2020realtors-db"
+database_id = "3d785a30-04a7-4156-9e55-55bd5284ccc5"
+
+# KV Cache binding
+[[kv_namespaces]]
+binding = "CACHE"
+id = "3a2b9bbc270a4f9097abb1402addc978"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets (set these using: wrangler secret put <SECRET_NAME>)
+# IDX_API_KEY = "your-idx-api-key"
+# JWT_SECRET = "your-jwt-secret"
+# RESEND_API_KEY = "your-resend-api-key" (optional for emails)

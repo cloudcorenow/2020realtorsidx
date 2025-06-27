@@ -1,25 +1,29 @@
-# 20/20 Realtors - Cloudflare Worker Real Estate Platform
+# 20/20 Realtors - Separated Frontend & Backend
 
-A modern real estate platform built with React frontend and Cloudflare Worker backend, featuring IDX Broker integration and D1 database.
+A modern real estate platform with separated frontend (Cloudflare Pages) and backend (Cloudflare Workers) architecture.
 
 ## Architecture
 
-- **Frontend**: React + TypeScript + Tailwind CSS
-- **Backend**: Cloudflare Worker with Hono framework
+- **Frontend**: React + TypeScript + Tailwind CSS (Cloudflare Pages)
+- **Backend**: Cloudflare Worker with Hono framework (Cloudflare Workers)
 - **Database**: Cloudflare D1 (SQLite)
 - **Cache**: Cloudflare KV
 - **IDX Integration**: IDX Broker API for real estate MLS data
-- **Deployment**: Cloudflare Pages + Workers
 
-## Features
+## Project Structure
 
-- 🏠 Property listings with advanced search and filtering
-- 🔍 IDX Broker MLS integration for real-time property data
-- 👤 User authentication and favorites
-- 📧 Contact forms and tour requests
-- 📱 Responsive design with modern UI
-- ⚡ Edge-optimized performance with caching
-- 🔒 Secure API with JWT authentication
+```
+├── src/                    # Frontend React application
+├── worker/                 # Backend Cloudflare Worker
+│   ├── src/
+│   │   ├── api/           # API route handlers
+│   │   └── index.ts       # Worker entry point
+│   ├── package.json       # Worker dependencies
+│   ├── wrangler.toml      # Worker configuration
+│   └── tsconfig.json      # Worker TypeScript config
+├── supabase/migrations/   # Database migrations
+└── package.json           # Frontend dependencies
+```
 
 ## Setup Instructions
 
@@ -35,150 +39,76 @@ A modern real estate platform built with React frontend and Cloudflare Worker ba
 ```bash
 git clone <repository-url>
 cd 2020-realtors
+
+# Install frontend dependencies
 npm install
+
+# Install worker dependencies
+cd worker
+npm install
+cd ..
 ```
 
-### 3. Cloudflare Setup
+### 3. Backend Setup (Cloudflare Worker)
 
 1. **Login to Cloudflare**:
    ```bash
    wrangler login
    ```
 
-2. **Create D1 Database**:
-   ```bash
-   wrangler d1 create realtors_db
-   ```
-   Copy the database ID and update `wrangler.toml`
+2. **Database is already configured** in `worker/wrangler.toml`
 
-3. **Create KV Namespace**:
+3. **Run Database Migrations**:
    ```bash
-   wrangler kv:namespace create "CACHE"
-   wrangler kv:namespace create "CACHE" --preview
-   ```
-   Update the KV namespace IDs in `wrangler.toml`
-
-4. **Run Database Migrations**:
-   ```bash
+   cd worker
    npm run db:migrate
    ```
 
-### 4. IDX Broker Setup
-
-1. **Get IDX Broker API Credentials**:
-   - Log into your IDX Broker account
-   - Go to Account > API Keys
-   - Generate a new API key
-   - Note your Partner Key if required
-
-2. **Set IDX Environment Variables**:
+4. **Set Environment Variables**:
    ```bash
+   cd worker
    wrangler secret put IDX_API_KEY
    # Enter your IDX API key when prompted
    
-   wrangler secret put IDX_PARTNER_KEY
-   # Enter your IDX Partner key if required
+   wrangler secret put JWT_SECRET
+   # Enter a secure random string
+   
+   wrangler secret put RESEND_API_KEY
+   # Enter your Resend API key (optional for emails)
    ```
 
-### 5. Additional Environment Variables
+5. **Deploy Worker**:
+   ```bash
+   cd worker
+   npm run deploy
+   ```
 
-```bash
-# Required for JWT authentication
-wrangler secret put JWT_SECRET
-# Enter a secure random string
+### 4. Frontend Setup (Cloudflare Pages)
 
-# Optional for email notifications
-wrangler secret put RESEND_API_KEY
-# Enter your Resend API key if you want email notifications
-```
+1. **Update API URL**: The frontend is configured to use:
+   - Development: `http://localhost:8787`
+   - Production: `https://2020-realtors-api.workers.dev`
 
-### 6. Development
+2. **Deploy to Cloudflare Pages**:
+   - Connect your GitHub repository to Cloudflare Pages
+   - Set build command: `npm run build`
+   - Set build output directory: `dist`
+   - Deploy automatically on git push
+
+### 5. Development
 
 ```bash
 # Start frontend development server
 npm run dev
 
 # Start worker development server (in another terminal)
-npm run worker:dev
+cd worker
+npm run dev
 ```
-
-### 7. Deployment
-
-```bash
-# Build and deploy
-npm run build
-npm run worker:deploy
-```
-
-## IDX Broker Integration
-
-### API Endpoints
-
-The platform integrates with IDX Broker's API using the following endpoints:
-
-- `GET /api/idx/featured` - Get featured properties from IDX
-- `GET /api/idx/search` - Search IDX properties with filters
-- `GET /api/idx/property/:listingId` - Get single property details
-- `GET /api/idx/property/:listingId/photos` - Get property photos
-- `GET /api/idx/listings` - Get all active listings
-- `GET /api/idx/soldpending` - Get sold/pending properties
-- `POST /api/idx/sync` - Sync IDX properties to local database
-- `GET /api/idx/system-info` - Get IDX system information
-
-### IDX Broker API Methods Used
-
-Based on the [IDX Broker API documentation](https://middleware.idxbroker.com/docs/api/methods/index.html):
-
-- **featured** - Get featured listings
-- **listings** - Get all active listings
-- **search** - Search properties with filters
-- **listing/{listingID}** - Get single property details
-- **listing/{listingID}/images** - Get property photos
-- **soldpending** - Get sold and pending properties
-- **systemlinks** - Get system information
-
-### Search Parameters
-
-The IDX search supports the following parameters:
-- `city` - City name
-- `state` - State abbreviation
-- `zipcode` - ZIP code
-- `minPrice` / `maxPrice` - Price range (mapped to minListPrice/maxListPrice)
-- `beds` - Minimum bedrooms (mapped to bedrooms)
-- `baths` - Minimum bathrooms (mapped to bathrooms)
-- `propertyType` - Property type filter
-- `sqftMin` / `sqftMax` - Square footage range (mapped to minSqft/maxSqft)
-- `limit` / `offset` - Pagination
-
-### Property Data Mapping
-
-IDX properties are automatically mapped to our internal format:
-- **listingID** → id
-- **listPrice** → price
-- **address/streetName** → address
-- **cityName** → city
-- **state/stateAbbreviation** → state
-- **zipcode/postalCode** → zip
-- **bedrooms** → beds
-- **totalBaths** → baths
-- **sqFt/livingArea** → sqft
-- **remarksConcat/publicRemarks** → description
-- **propType/propertyType** → propertyType
-- **yearBuilt** → yearBuilt
-- **propStatus/status** → status
-- **listingDate/dateAdded** → listingDate
-- **latitude/longitude** → coordinates
-
-### Caching Strategy
-
-- **Featured Properties**: 15 minutes
-- **Search Results**: 5 minutes
-- **Property Details**: 10 minutes
-- **Property Photos**: 30 minutes
-- **All Listings**: 10 minutes
-- **Sold/Pending**: 30 minutes
 
 ## API Endpoints
+
+The backend worker provides the following API endpoints:
 
 ### Properties
 - `GET /api/properties` - Get properties with filtering
@@ -191,9 +121,6 @@ IDX properties are automatically mapped to our internal format:
 - `GET /api/idx/featured` - Get IDX featured properties
 - `GET /api/idx/search` - Search IDX properties
 - `GET /api/idx/property/:listingId` - Get IDX property details
-- `GET /api/idx/listings` - Get all IDX listings
-- `GET /api/idx/soldpending` - Get sold/pending properties
-- `POST /api/idx/sync` - Sync IDX properties to local DB
 
 ### Authentication
 - `POST /api/auth/signup` - User registration
@@ -207,51 +134,50 @@ IDX properties are automatically mapped to our internal format:
 - `GET /api/contact/submissions` - Get contact submissions (admin)
 - `GET /api/contact/tour-requests` - Get tour requests (admin)
 
-## Database Schema
+### Health Check
+- `GET /api/health` - API health status
 
-The D1 database includes tables for:
+## Deployment URLs
+
+- **Frontend**: Will be deployed to Cloudflare Pages (e.g., `https://2020realtors.pages.dev`)
+- **Backend**: Deployed to Cloudflare Workers (`https://2020-realtors-api.workers.dev`)
+
+## Environment Variables
+
+### Worker Secrets (set with `wrangler secret put`)
+- `IDX_API_KEY` - Your IDX Broker API key
+- `JWT_SECRET` - Secret for JWT token signing
+- `RESEND_API_KEY` - Resend API key for email notifications (optional)
+
+### Frontend Environment Variables
+The frontend automatically detects the environment and uses the appropriate API URL.
+
+## CORS Configuration
+
+The worker is configured to allow requests from:
+- `http://localhost:5173` (development)
+- `https://2020realtors.pages.dev` (production)
+- `https://2020-realtors.pages.dev` (production)
+- `https://www.2020realtors.com` (custom domain)
+- `https://2020realtors.com` (custom domain)
+
+## Database
+
+The database is shared between both environments and includes tables for:
 - `users` - User accounts
 - `agents` - Real estate agents
-- `properties` - Property listings (local + synced from IDX)
+- `properties` - Property listings
 - `user_favorites` - User favorite properties
 - `contact_submissions` - Contact form submissions
 - `tour_requests` - Property tour requests
 
-## Frontend Integration
+## Benefits of Separated Architecture
 
-### Using IDX Data
-
-```typescript
-import { useIDXFeatured, useIDXSearch } from '../hooks/useIDX';
-
-// Get featured properties
-const { data: featured, loading, error } = useIDXFeatured();
-
-// Search properties
-const { data: searchResults, search } = useIDXSearch();
-
-// Perform search
-search({
-  city: 'Los Angeles',
-  state: 'CA',
-  minPrice: 500000,
-  maxPrice: 1000000,
-  beds: 3
-});
-```
-
-### Property Display
-
-Properties from IDX are automatically formatted to match the existing Property interface, so they work seamlessly with existing components like `PropertyCard` and `PropertyPage`.
-
-## Performance Optimizations
-
-- **Edge Caching**: Static assets and API responses cached at Cloudflare edge
-- **Image Optimization**: Lazy loading with intersection observer
-- **Code Splitting**: Dynamic imports for better loading performance
-- **Database Indexing**: Optimized queries with proper indexes
-- **KV Caching**: Frequently accessed IDX data cached in KV store
-- **Request Deduplication**: Prevents duplicate API calls
+1. **Independent Scaling**: Frontend and backend can scale independently
+2. **Better Performance**: Static frontend served from CDN, API from edge workers
+3. **Easier Deployment**: Separate deployment pipelines for frontend and backend
+4. **Development Flexibility**: Teams can work on frontend and backend independently
+5. **Cost Optimization**: Pay only for what you use with serverless architecture
 
 ## Security Features
 
@@ -259,39 +185,14 @@ Properties from IDX are automatically formatted to match the existing Property i
 - CORS protection for API endpoints
 - Input validation with Zod schemas
 - SQL injection prevention with prepared statements
-- Rate limiting (configurable with Cloudflare Workers)
-- Secure IDX API key management
+- Secure cookie settings for cross-origin requests
 
-## Monitoring and Analytics
+## Monitoring
 
 - Built-in health check endpoint: `/api/health`
+- Cloudflare Analytics for both Pages and Workers
 - Error logging and monitoring
-- Performance metrics via Cloudflare Analytics
-- IDX API usage tracking
-- Custom metrics for business intelligence
-
-## Troubleshooting
-
-### IDX API Issues
-
-1. **Invalid API Key**: Verify your IDX API key is correct and active
-2. **Rate Limiting**: IDX Broker has rate limits - implement proper caching
-3. **Property Not Found**: Some properties may not be available via API
-4. **Image Loading**: IDX images may have CORS restrictions
-
-### Common Errors
-
-- `IDX API key not configured`: Set the `IDX_API_KEY` secret
-- `Failed to fetch IDX properties`: Check API key and network connectivity
-- `Property not found`: Listing may have been removed or is not public
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+- Performance metrics
 
 ## License
 

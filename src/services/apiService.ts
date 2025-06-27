@@ -1,5 +1,7 @@
 // API service for communicating with Cloudflare Worker backend
-const API_BASE_URL = import.meta.env.PROD ? 'https://realtors-api.workers.dev' : 'http://localhost:8787';
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://2020-realtors-api.workers.dev' 
+  : 'http://localhost:8787';
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -147,52 +149,6 @@ class ApiService {
   // Health check
   async healthCheck() {
     return this.request('/api/health');
-  }
-
-  // Database operations
-  async runDatabaseMigration() {
-    return this.request('/api/admin/migrate', { method: 'POST' });
-  }
-
-  async getDatabaseStatus() {
-    return this.request('/api/admin/db-status');
-  }
-
-  // Utility methods
-  async uploadFile(file: File, path: string) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('path', path);
-
-    const response = await fetch(`${API_BASE_URL}/api/upload`, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
-      throw new Error(error.error || 'Upload failed');
-    }
-
-    return response.json();
-  }
-
-  // Batch operations
-  async batchRequest<T>(requests: Array<{ endpoint: string; options?: RequestInit }>): Promise<T[]> {
-    const promises = requests.map(({ endpoint, options }) => 
-      this.request<T>(endpoint, options).catch(error => {
-        console.error(`Batch request failed for ${endpoint}:`, error);
-        return null;
-      })
-    );
-
-    const results = await Promise.allSettled(promises);
-    return results
-      .filter((result): result is PromiseFulfilledResult<T> => 
-        result.status === 'fulfilled' && result.value !== null
-      )
-      .map(result => result.value);
   }
 }
 
