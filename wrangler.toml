@@ -27,13 +27,12 @@ binding = "CACHE"
 id = "3a2b9bbc270a4f9097abb1402addc978"
 preview_id = "3a2b9bbc270a4f9097abb1402addc978"
 
-# Assets configuration for serving static files
+# Static assets configuration
 [assets]
 directory = "./dist"
 binding = "ASSETS"
 
-# IDX Broker API Configuration
-# Set these as secrets using: wrangler secret put <SECRET_NAME>
+# Environment secrets (set with: wrangler secret put <SECRET_NAME>)
 # IDX_API_KEY = "your-idx-api-key"
 # IDX_PARTNER_KEY = "your-idx-partner-key" (if needed)
 # JWT_SECRET = "your-jwt-secret"
