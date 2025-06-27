@@ -11,8 +11,8 @@ name = "2020realtors-staging"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "realtors_db"
-database_id = "your-database-id-here"
+database_name = "2020realtors-db"
+database_id = "3d785a30-04a7-4156-9e55-55bd5284ccc5"
 
 [vars]
 ENVIRONMENT = "production"
