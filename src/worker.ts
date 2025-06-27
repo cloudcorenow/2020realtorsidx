@@ -25,14 +25,16 @@ const app = new Hono<{ Bindings: Bindings }>();
 // Middleware
 app.use('*', logger());
 app.use('*', prettyJSON());
+
+// CORS for API routes only
 app.use('/api/*', cors({
-  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev'],
+  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://2020realtors.workers.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
 
-// Cache static assets
+// Cache static assets with proper headers
 app.use('/assets/*', cache({
   cacheName: 'static-assets',
   cacheControl: 'max-age=31536000, immutable',
@@ -49,50 +51,96 @@ app.get('/api/health', (c) => {
   return c.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    environment: c.env.ENVIRONMENT 
+    environment: c.env.ENVIRONMENT || 'production',
+    worker: 'active'
   });
 });
 
-// Serve static files from ASSETS binding
+// Handle all other requests (static files and SPA routing)
 app.get('*', async (c) => {
+  const url = new URL(c.req.url);
+  const pathname = url.pathname;
+  
   try {
-    const url = new URL(c.req.url);
-    const path = url.pathname;
-    
-    // For API routes that don't exist, return 404
-    if (path.startsWith('/api/')) {
+    // Skip API routes
+    if (pathname.startsWith('/api/')) {
       throw new HTTPException(404, { message: 'API endpoint not found' });
     }
+
+    // Try to serve static asset first
+    let assetRequest = c.req.raw.clone();
     
-    // Try to fetch the asset from the ASSETS binding
-    const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
+    // For root path, serve index.html
+    if (pathname === '/') {
+      assetRequest = new Request(new URL('/index.html', c.req.url));
+    }
     
-    // If asset is found, return it
-    if (assetResponse.status === 200) {
-      return assetResponse;
+    const assetResponse = await c.env.ASSETS.fetch(assetRequest);
+    
+    if (assetResponse.ok) {
+      // Clone the response to avoid issues with streaming
+      const response = new Response(assetResponse.body, {
+        status: assetResponse.status,
+        statusText: assetResponse.statusText,
+        headers: assetResponse.headers,
+      });
+      
+      // Add cache headers for static assets
+      if (pathname.startsWith('/assets/')) {
+        response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (pathname.endsWith('.html')) {
+        response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+      }
+      
+      return response;
     }
     
     // For client-side routing, serve index.html for non-asset requests
-    if (!path.includes('.') && !path.startsWith('/api/')) {
-      const indexResponse = await c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
-      if (indexResponse.status === 200) {
+    if (!pathname.includes('.')) {
+      const indexRequest = new Request(new URL('/index.html', c.req.url));
+      const indexResponse = await c.env.ASSETS.fetch(indexRequest);
+      
+      if (indexResponse.ok) {
         return new Response(indexResponse.body, {
+          status: 200,
           headers: {
-            ...Object.fromEntries(indexResponse.headers),
-            'Content-Type': 'text/html',
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=0, must-revalidate',
           },
         });
       }
     }
     
     // If nothing found, return 404
-    throw new HTTPException(404, { message: 'Not Found' });
+    throw new HTTPException(404, { message: 'Page not found' });
+    
   } catch (error) {
     if (error instanceof HTTPException) {
       throw error;
     }
     
     console.error('Asset serving error:', error);
+    
+    // Fallback: try to serve index.html for any non-API route
+    if (!pathname.startsWith('/api/')) {
+      try {
+        const fallbackRequest = new Request(new URL('/index.html', c.req.url));
+        const fallbackResponse = await c.env.ASSETS.fetch(fallbackRequest);
+        
+        if (fallbackResponse.ok) {
+          return new Response(fallbackResponse.body, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Cache-Control': 'public, max-age=0, must-revalidate',
+            },
+          });
+        }
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
+    }
+    
     throw new HTTPException(500, { message: 'Internal Server Error' });
   }
 });
@@ -105,9 +153,12 @@ app.onError((err, c) => {
     return err.getResponse();
   }
   
+  const isDevelopment = c.env?.ENVIRONMENT === 'development';
+  
   return c.json({ 
     error: 'Internal Server Error',
-    message: c.env.ENVIRONMENT === 'development' ? err.message : 'Something went wrong'
+    message: isDevelopment ? err.message : 'Something went wrong',
+    timestamp: new Date().toISOString()
   }, 500);
 });
 
