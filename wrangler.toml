@@ -14,3 +14,5 @@ id = "3a2b9bbc270a4f9097abb1402addc978"
 
 [vars]
 ENVIRONMENT = "production"
+
+# Removed [assets] section completely to avoid __STATIC_CONTENT_MANIFEST issues

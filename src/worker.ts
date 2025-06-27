@@ -38,7 +38,7 @@ app.get('/api/health', (c) => {
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     environment: c.env.ENVIRONMENT || 'unknown',
-    version: '3.0.0'
+    version: '4.0.0'
   });
 });
 
@@ -46,7 +46,7 @@ app.get('/api/health', (c) => {
 app.get('/', (c) => {
   return c.json({ 
     message: '20/20 Realtors API Final',
-    version: '3.0.0',
+    version: '4.0.0',
     endpoints: [
       '/api/health',
       '/api/properties',
@@ -57,9 +57,46 @@ app.get('/', (c) => {
   });
 });
 
-// 404 handler
-app.notFound((c) => {
-  return c.json({ error: 'Not found' }, 404);
+// SPA fallback - serve index.html for non-API routes
+// This is the key fix: serve HTML directly instead of using serveStatic
+app.get('*', async (c) => {
+  if (c.req.path.startsWith('/api/')) {
+    return c.json({ message: 'API endpoint not found' }, 404);
+  }
+  
+  // Return the built index.html directly
+  return c.html(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>20/20 Realtors | Premier Real Estate Services</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.pexels.com">
+    
+    <!-- Optimized font loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Meta tags for SEO and performance -->
+    <meta name="description" content="20/20 Realtors - Your trusted partner in Southern California real estate. Find your perfect home with our expert agents and exceptional service.">
+    <meta name="keywords" content="real estate, Southern California, homes for sale, property, realtors">
+    <meta name="theme-color" content="#1E3A8A">
+    
+    <!-- Performance hints -->
+    <link rel="dns-prefetch" href="//images.pexels.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" crossorigin src="https://2020realtors.pages.dev/assets/index.js"></script>
+    <link rel="stylesheet" crossorigin href="https://2020realtors.pages.dev/assets/index.css">
+  </body>
+</html>`);
 });
 
 // Error handler
