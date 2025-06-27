@@ -18,9 +18,9 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// CORS for API routes only
-app.use('/api/*', cors({
-  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://2020realtors.workers.dev'],
+// Global CORS for all routes
+app.use('*', cors({
+  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://2020realtors-api.workers.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -36,13 +36,38 @@ app.route('/api/contact', contactRouter);
 app.get('/api/health', (c) => {
   return c.json({ 
     status: 'healthy', 
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: c.env.ENVIRONMENT || 'unknown'
   });
 });
 
-// Simple 404 for non-API routes (Pages will handle static files)
-app.get('*', (c) => {
+// Root endpoint
+app.get('/', (c) => {
+  return c.json({ 
+    message: '20/20 Realtors API',
+    version: '1.0.0',
+    endpoints: [
+      '/api/health',
+      '/api/properties',
+      '/api/idx',
+      '/api/auth',
+      '/api/contact'
+    ]
+  });
+});
+
+// 404 handler
+app.notFound((c) => {
   return c.json({ error: 'Not found' }, 404);
+});
+
+// Error handler
+app.onError((err, c) => {
+  console.error('Worker error:', err);
+  return c.json({ 
+    error: 'Internal Server Error',
+    message: c.env.ENVIRONMENT === 'development' ? err.message : 'Something went wrong'
+  }, 500);
 });
 
 export default app;

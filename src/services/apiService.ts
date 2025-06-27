@@ -1,9 +1,9 @@
 // API service for communicating with Cloudflare Worker backend
-const API_BASE_URL = import.meta.env.PROD ? '' : 'http://localhost:8787';
+const API_BASE_URL = import.meta.env.PROD ? 'https://2020realtors-api.workers.dev' : 'http://localhost:8787';
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}/api${endpoint}`;
+    const url = `${API_BASE_URL}${endpoint}`;
     
     const response = await fetch(url, {
       headers: {
@@ -25,52 +25,52 @@ class ApiService {
   // Properties API
   async getProperties(params: Record<string, any> = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/properties?${queryString}`);
+    return this.request(`/api/properties?${queryString}`);
   }
 
   async getProperty(id: string) {
-    return this.request(`/properties/${id}`);
+    return this.request(`/api/properties/${id}`);
   }
 
   async getFeaturedProperties() {
-    return this.request('/properties/featured/list');
+    return this.request('/api/properties/featured/list');
   }
 
   async toggleFavorite(propertyId: string, userId: string) {
-    return this.request('/properties/favorites', {
+    return this.request('/api/properties/favorites', {
       method: 'POST',
       body: JSON.stringify({ propertyId, userId }),
     });
   }
 
   async getUserFavorites(userId: string) {
-    return this.request(`/properties/favorites/${userId}`);
+    return this.request(`/api/properties/favorites/${userId}`);
   }
 
   // IDX API
   async searchIDXProperties(params: Record<string, any> = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/idx/search?${queryString}`);
+    return this.request(`/api/idx/search?${queryString}`);
   }
 
   async getIDXProperty(listingId: string) {
-    return this.request(`/idx/property/${listingId}`);
+    return this.request(`/api/idx/property/${listingId}`);
   }
 
   async getIDXFeaturedProperties() {
-    return this.request('/idx/featured');
+    return this.request('/api/idx/featured');
   }
 
   async getAllIDXListings() {
-    return this.request('/idx/listings');
+    return this.request('/api/idx/listings');
   }
 
   async getIDXSoldPending() {
-    return this.request('/idx/soldpending');
+    return this.request('/api/idx/soldpending');
   }
 
   async syncIDXProperties() {
-    return this.request('/idx/sync', { method: 'POST' });
+    return this.request('/api/idx/sync', { method: 'POST' });
   }
 
   // Auth API
@@ -81,14 +81,14 @@ class ApiService {
     lastName?: string;
     phone?: string;
   }) {
-    return this.request('/auth/signup', {
+    return this.request('/api/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
   async signIn(credentials: { email: string; password: string }) {
-    return this.request('/auth/signin', {
+    return this.request('/api/auth/signin', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -96,14 +96,14 @@ class ApiService {
 
   async getCurrentUser() {
     try {
-      return await this.request('/auth/me');
+      return await this.request('/api/auth/me');
     } catch (error) {
       return null;
     }
   }
 
   async signOut() {
-    return this.request('/auth/signout', { method: 'POST' });
+    return this.request('/api/auth/signout', { method: 'POST' });
   }
 
   // Contact API
@@ -115,7 +115,7 @@ class ApiService {
     message: string;
     propertyId?: string;
   }) {
-    return this.request('/contact/submit', {
+    return this.request('/api/contact/submit', {
       method: 'POST',
       body: JSON.stringify(formData),
     });
@@ -130,32 +130,32 @@ class ApiService {
     preferredTime: string;
     message?: string;
   }) {
-    return this.request('/contact/tour-request', {
+    return this.request('/api/contact/tour-request', {
       method: 'POST',
       body: JSON.stringify(tourData),
     });
   }
 
   async getContactSubmissions() {
-    return this.request('/contact/submissions');
+    return this.request('/api/contact/submissions');
   }
 
   async getTourRequests() {
-    return this.request('/contact/tour-requests');
+    return this.request('/api/contact/tour-requests');
   }
 
   // Health check
   async healthCheck() {
-    return this.request('/health');
+    return this.request('/api/health');
   }
 
   // Database operations
   async runDatabaseMigration() {
-    return this.request('/admin/migrate', { method: 'POST' });
+    return this.request('/api/admin/migrate', { method: 'POST' });
   }
 
   async getDatabaseStatus() {
-    return this.request('/admin/db-status');
+    return this.request('/api/admin/db-status');
   }
 
   // Utility methods
