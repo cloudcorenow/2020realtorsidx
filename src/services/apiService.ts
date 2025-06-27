@@ -1,6 +1,6 @@
 // API service for communicating with Cloudflare Worker backend
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://2020-realtors-api.workers.dev' 
+  ? 'https://2020realtors.lamado.workers.dev' 
   : 'http://localhost:8787';
 
 class ApiService {
