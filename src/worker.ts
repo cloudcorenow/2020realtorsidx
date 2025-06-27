@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
-import { serveStatic } from 'hono/cloudflare-workers';
 
 // API route handlers
 import { propertiesRouter } from './api/properties';
@@ -50,17 +49,50 @@ app.get('/api/health', (c) => {
   });
 });
 
-// Serve static files from the dist directory
-app.use('/*', serveStatic({ root: './' }));
+// Serve static assets
+app.get('/assets/*', async (c) => {
+  try {
+    const url = new URL(c.req.url);
+    const response = await c.env.ASSETS.fetch(url);
+    
+    // Add cache headers for static assets
+    const newResponse = new Response(response.body, response);
+    newResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    
+    return newResponse;
+  } catch (error) {
+    return c.notFound();
+  }
+});
 
-// SPA fallback - serve index.html for non-API routes
-app.get('*', async (c) => {
+// Serve other static files (images, favicon, etc.)
+app.get('/*', async (c) => {
+  // Skip API routes
   if (c.req.path.startsWith('/api/')) {
     return c.json({ message: 'API endpoint not found' }, 404);
   }
   
-  // Return the built index.html for SPA routing
-  return c.html(`<!doctype html>
+  try {
+    const url = new URL(c.req.url);
+    const response = await c.env.ASSETS.fetch(url);
+    
+    if (response.status === 404) {
+      // For SPA routing, serve index.html for non-asset requests
+      const indexResponse = await c.env.ASSETS.fetch(new URL('/index.html', url.origin));
+      if (indexResponse.status === 200) {
+        return new Response(indexResponse.body, {
+          headers: {
+            'Content-Type': 'text/html',
+            'Cache-Control': 'no-cache'
+          }
+        });
+      }
+    }
+    
+    return response;
+  } catch (error) {
+    // Fallback HTML for SPA routing
+    return c.html(`<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -90,7 +122,13 @@ app.get('*', async (c) => {
     <div id="root"></div>
     <script type="module" src="/assets/index.js"></script>
   </body>
-</html>`);
+</html>`, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'no-cache'
+      }
+    });
+  }
 });
 
 // Global error handler
