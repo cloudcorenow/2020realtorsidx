@@ -18,13 +18,13 @@ id = "3a2b9bbc270a4f9097abb1402addc978"
 [vars]
 ENVIRONMENT = "production"
 
-# Build configuration
-[build]
-command = "npm run build"
-cwd = "."
-watch_dir = "src"
+# Build configuration - REMOVED to prevent double building
+# [build]
+# command = "npm run build"
+# cwd = "."
+# watch_dir = "src"
 
-# Assets binding for static content
+# Assets binding for static content - UPDATED for Wrangler 4
 [assets]
 directory = "./dist"
 binding = "ASSETS"
