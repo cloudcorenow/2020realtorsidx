@@ -3,37 +3,21 @@ main = "src/worker.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
-[env.production]
-name = "2020realtors"
-
-[env.staging]
-name = "2020realtors-staging"
-
 [[d1_databases]]
 binding = "DB"
 database_name = "2020realtors-db"
 database_id = "3d785a30-04a7-4156-9e55-55bd5284ccc5"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "3a2b9bbc270a4f9097abb1402addc978"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
 
 [vars]
 ENVIRONMENT = "production"
 
 [build]
 command = "npm run build"
-cwd = "."
-watch_dir = "src"
-
-[[kv_namespaces]]
-binding = "CACHE"
-id = "3a2b9bbc270a4f9097abb1402addc978"
-preview_id = "3a2b9bbc270a4f9097abb1402addc978"
-
-# Static assets configuration
-[assets]
-directory = "./dist"
-binding = "ASSETS"
-
-# Environment secrets (set with: wrangler secret put <SECRET_NAME>)
-# IDX_API_KEY = "your-idx-api-key"
-# IDX_PARTNER_KEY = "your-idx-partner-key" (if needed)
-# JWT_SECRET = "your-jwt-secret"
-# RESEND_API_KEY = "your-resend-api-key" (optional for emails)
