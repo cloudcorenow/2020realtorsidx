@@ -3,16 +3,21 @@ main = "src/worker.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
+# Database binding
 [[d1_databases]]
 binding = "DB"
 database_name = "2020realtors-db"
 database_id = "3d785a30-04a7-4156-9e55-55bd5284ccc5"
 
+# KV Cache binding
 [[kv_namespaces]]
 binding = "CACHE"
 id = "3a2b9bbc270a4f9097abb1402addc978"
 
+# Environment variables
 [vars]
 ENVIRONMENT = "production"
 
-# Pure API worker - no static content serving
+# Build configuration - API only, no static content
+[build]
+command = ""

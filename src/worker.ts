@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
+import { prettyJSON } from 'hono/pretty-json';
 
 // API route handlers
 import { propertiesRouter } from './api/properties';
@@ -18,9 +20,13 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Global CORS for all routes
+// Middleware
+app.use('*', logger());
+app.use('*', prettyJSON());
+
+// CORS for all routes
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://realtors-api-final.workers.dev'],
+  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -37,8 +43,8 @@ app.get('/api/health', (c) => {
   return c.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
-    environment: c.env.ENVIRONMENT || 'unknown',
-    version: '4.0.0'
+    environment: c.env.ENVIRONMENT || 'production',
+    version: '1.0.0'
   });
 });
 
@@ -46,28 +52,35 @@ app.get('/api/health', (c) => {
 app.get('/', (c) => {
   return c.json({ 
     message: '20/20 Realtors API',
-    version: '4.0.0',
-    endpoints: [
-      '/api/health',
-      '/api/properties',
-      '/api/idx',
-      '/api/auth',
-      '/api/contact'
-    ]
+    version: '1.0.0',
+    status: 'operational',
+    endpoints: {
+      health: '/api/health',
+      properties: '/api/properties',
+      idx: '/api/idx',
+      auth: '/api/auth',
+      contact: '/api/contact'
+    }
   });
 });
 
-// 404 for all other routes
-app.get('*', (c) => {
-  return c.json({ message: 'API endpoint not found' }, 404);
+// 404 handler for unknown routes
+app.notFound((c) => {
+  return c.json({ 
+    error: 'Not Found',
+    message: 'API endpoint not found',
+    availableEndpoints: ['/api/health', '/api/properties', '/api/idx', '/api/auth', '/api/contact']
+  }, 404);
 });
 
-// Error handler
+// Global error handler
 app.onError((err, c) => {
-  console.error('Worker error:', err);
+  console.error('API Error:', err);
+  
   return c.json({ 
     error: 'Internal Server Error',
-    message: c.env.ENVIRONMENT === 'development' ? err.message : 'Something went wrong'
+    message: c.env.ENVIRONMENT === 'development' ? err.message : 'Something went wrong',
+    timestamp: new Date().toISOString()
   }, 500);
 });
 
