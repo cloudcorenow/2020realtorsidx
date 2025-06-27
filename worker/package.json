@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
+    "build": "echo 'Build step for worker'",
     "deploy": "wrangler deploy",
     "db:migrate": "wrangler d1 execute 2020realtors-db --file=../supabase/migrations/20250627192516_mute_grove.sql",
     "db:migrate-local": "wrangler d1 execute 2020realtors-db --local --file=../supabase/migrations/20250627192516_mute_grove.sql"
