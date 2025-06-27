@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const fallback = document.createElement('h3');
-                  fallback.className = 'text-2xl font-serif font-bold text-blue-900';
+                  fallback.className = 'text-2xl font-serif font-bold text-white';
                   fallback.textContent = '20/20 Realtors';
                   target.parentNode?.insertBefore(fallback, target);
                 }}
