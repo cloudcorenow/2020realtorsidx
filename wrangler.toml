@@ -1,4 +1,4 @@
-name = "realtors-api-final"
+name = "realtors-api"
 main = "src/worker.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
@@ -15,4 +15,4 @@ id = "3a2b9bbc270a4f9097abb1402addc978"
 [vars]
 ENVIRONMENT = "production"
 
-# Removed [assets] section completely to avoid __STATIC_CONTENT_MANIFEST issues
+# Pure API worker - no static content serving
