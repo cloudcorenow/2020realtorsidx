@@ -28,7 +28,7 @@ app.use('*', prettyJSON());
 app.use('*', cors({
   origin: [
     'http://localhost:5173',
-    'https://2020realtors.pages.dev',
+    'https://2020realtorsidx.pages.dev',
     'https://2020-realtors.pages.dev',
     'https://www.2020realtors.com',
     'https://2020realtors.com'

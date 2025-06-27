@@ -1,5 +1,5 @@
 name = "2020realtors-api"
-main = "worker/src/index.ts"
+main = "src/index.ts"
 compatibility_date = "2024-01-15"
 compatibility_flags = ["nodejs_compat"]
 
@@ -17,11 +17,6 @@ id = "3a2b9bbc270a4f9097abb1402addc978"
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
-
-# Build configuration to use worker directory
-[build]
-command = "cd worker && npm install && npm run build"
-cwd = "worker"
 
 # Secrets (set these using: wrangler secret put <SECRET_NAME>)
 # IDX_API_KEY = "your-idx-api-key"
