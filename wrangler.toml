@@ -12,10 +12,6 @@ database_id = "3d785a30-04a7-4156-9e55-55bd5284ccc5"
 binding = "CACHE"
 id = "3a2b9bbc270a4f9097abb1402addc978"
 
-[assets]
-directory = "./dist"
-binding = "ASSETS"
-
 [vars]
 ENVIRONMENT = "production"
 
