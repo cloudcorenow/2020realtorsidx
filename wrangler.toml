@@ -18,16 +18,9 @@ id = "3a2b9bbc270a4f9097abb1402addc978"
 [vars]
 ENVIRONMENT = "production"
 
-# Build configuration - REMOVED to prevent double building
-# [build]
-# command = "npm run build"
-# cwd = "."
-# watch_dir = "src"
-
-# Assets binding for static content - UPDATED for Wrangler 4
-[assets]
-directory = "./dist"
-binding = "ASSETS"
+# Static site configuration for Wrangler 3
+[site]
+bucket = "./dist"
 
 # Secrets (set these using: wrangler secret put <SECRET_NAME>)
 # IDX_API_KEY = "your-idx-api-key"
