@@ -20,7 +20,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 // Global CORS for all routes
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://realtors-api-v2.workers.dev'],
+  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev', 'https://realtors-api-final.workers.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -38,15 +38,15 @@ app.get('/api/health', (c) => {
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     environment: c.env.ENVIRONMENT || 'unknown',
-    version: '2.0.0'
+    version: '3.0.0'
   });
 });
 
 // Root endpoint
 app.get('/', (c) => {
   return c.json({ 
-    message: '20/20 Realtors API v2',
-    version: '2.0.0',
+    message: '20/20 Realtors API Final',
+    version: '3.0.0',
     endpoints: [
       '/api/health',
       '/api/properties',
