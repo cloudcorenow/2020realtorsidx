@@ -1,5 +1,5 @@
 // API service for communicating with Cloudflare Worker backend
-const API_BASE_URL = import.meta.env.PROD ? 'https://2020realtors-api.workers.dev' : 'http://localhost:8787';
+const API_BASE_URL = import.meta.env.PROD ? 'https://realtors-api-v2.workers.dev' : 'http://localhost:8787';
 
 class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
