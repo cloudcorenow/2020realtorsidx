@@ -1,6 +1,5 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { serveStatic } from 'hono/cloudflare-workers';
 import { cache } from 'hono/cache';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
@@ -27,7 +26,7 @@ const app = new Hono<{ Bindings: Bindings }>();
 app.use('*', logger());
 app.use('*', prettyJSON());
 app.use('/api/*', cors({
-  origin: ['http://localhost:5173', 'https://2020-realtors.pages.dev'],
+  origin: ['http://localhost:5173', 'https://2020realtors.pages.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -54,17 +53,49 @@ app.get('/api/health', (c) => {
   });
 });
 
-// Serve static React app
-app.get('*', serveStatic({
-  root: './',
-  onNotFound: (path, c) => {
-    // For client-side routing, serve index.html for non-API routes
-    if (!path.startsWith('/api/')) {
-      return c.env.ASSETS.fetch(new Request('http://localhost/index.html'));
+// Serve static files from ASSETS binding
+app.get('*', async (c) => {
+  try {
+    const url = new URL(c.req.url);
+    const path = url.pathname;
+    
+    // For API routes that don't exist, return 404
+    if (path.startsWith('/api/')) {
+      throw new HTTPException(404, { message: 'API endpoint not found' });
     }
+    
+    // Try to fetch the asset from the ASSETS binding
+    const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
+    
+    // If asset is found, return it
+    if (assetResponse.status === 200) {
+      return assetResponse;
+    }
+    
+    // For client-side routing, serve index.html for non-asset requests
+    if (!path.includes('.') && !path.startsWith('/api/')) {
+      const indexResponse = await c.env.ASSETS.fetch(new Request(new URL('/index.html', c.req.url)));
+      if (indexResponse.status === 200) {
+        return new Response(indexResponse.body, {
+          headers: {
+            ...Object.fromEntries(indexResponse.headers),
+            'Content-Type': 'text/html',
+          },
+        });
+      }
+    }
+    
+    // If nothing found, return 404
     throw new HTTPException(404, { message: 'Not Found' });
-  },
-}));
+  } catch (error) {
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+    
+    console.error('Asset serving error:', error);
+    throw new HTTPException(500, { message: 'Internal Server Error' });
+  }
+});
 
 // Global error handler
 app.onError((err, c) => {

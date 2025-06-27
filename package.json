@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "db:migrate": "wrangler d1 execute realtors_db --file=./schema.sql",
-    "db:migrate-local": "wrangler d1 execute realtors_db --local --file=./schema.sql"
+    "db:migrate": "wrangler d1 execute 2020realtors-db --file=./supabase/migrations/20250627192516_mute_grove.sql",
+    "db:migrate-local": "wrangler d1 execute 2020realtors-db --local --file=./supabase/migrations/20250627192516_mute_grove.sql"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
