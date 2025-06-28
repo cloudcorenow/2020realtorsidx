@@ -27,52 +27,52 @@ class ApiService {
   // Properties API
   async getProperties(params: Record<string, any> = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/api/properties?${queryString}`);
+    return this.request(`/api/v1/properties?${queryString}`);
   }
 
   async getProperty(id: string) {
-    return this.request(`/api/properties/${id}`);
+    return this.request(`/api/v1/properties/${id}`);
   }
 
   async getFeaturedProperties() {
-    return this.request('/api/properties/featured/list');
+    return this.request('/api/v1/properties/featured/list');
   }
 
   async toggleFavorite(propertyId: string, userId: string) {
-    return this.request('/api/properties/favorites', {
+    return this.request('/api/v1/properties/favorites', {
       method: 'POST',
       body: JSON.stringify({ propertyId, userId }),
     });
   }
 
   async getUserFavorites(userId: string) {
-    return this.request(`/api/properties/favorites/${userId}`);
+    return this.request(`/api/v1/properties/favorites/${userId}`);
   }
 
   // IDX API
   async searchIDXProperties(params: Record<string, any> = {}) {
     const queryString = new URLSearchParams(params).toString();
-    return this.request(`/api/idx/search?${queryString}`);
+    return this.request(`/api/v1/idx/search?${queryString}`);
   }
 
   async getIDXProperty(listingId: string) {
-    return this.request(`/api/idx/property/${listingId}`);
+    return this.request(`/api/v1/idx/property/${listingId}`);
   }
 
   async getIDXFeaturedProperties() {
-    return this.request('/api/idx/featured');
+    return this.request('/api/v1/idx/featured');
   }
 
   async getAllIDXListings() {
-    return this.request('/api/idx/listings');
+    return this.request('/api/v1/idx/listings');
   }
 
   async getIDXSoldPending() {
-    return this.request('/api/idx/soldpending');
+    return this.request('/api/v1/idx/soldpending');
   }
 
   async syncIDXProperties() {
-    return this.request('/api/idx/sync', { method: 'POST' });
+    return this.request('/api/v1/idx/sync', { method: 'POST' });
   }
 
   // Auth API
@@ -83,14 +83,14 @@ class ApiService {
     lastName?: string;
     phone?: string;
   }) {
-    return this.request('/api/auth/signup', {
+    return this.request('/api/v1/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
   }
 
   async signIn(credentials: { email: string; password: string }) {
-    return this.request('/api/auth/signin', {
+    return this.request('/api/v1/auth/signin', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -98,14 +98,14 @@ class ApiService {
 
   async getCurrentUser() {
     try {
-      return await this.request('/api/auth/me');
+      return await this.request('/api/v1/auth/me');
     } catch (error) {
       return null;
     }
   }
 
   async signOut() {
-    return this.request('/api/auth/signout', { method: 'POST' });
+    return this.request('/api/v1/auth/signout', { method: 'POST' });
   }
 
   // Contact API
@@ -117,7 +117,7 @@ class ApiService {
     message: string;
     propertyId?: string;
   }) {
-    return this.request('/api/contact/submit', {
+    return this.request('/api/v1/contact/submit', {
       method: 'POST',
       body: JSON.stringify(formData),
     });
@@ -132,18 +132,18 @@ class ApiService {
     preferredTime: string;
     message?: string;
   }) {
-    return this.request('/api/contact/tour-request', {
+    return this.request('/api/v1/contact/tour-request', {
       method: 'POST',
       body: JSON.stringify(tourData),
     });
   }
 
   async getContactSubmissions() {
-    return this.request('/api/contact/submissions');
+    return this.request('/api/v1/contact/submissions');
   }
 
   async getTourRequests() {
-    return this.request('/api/contact/tour-requests');
+    return this.request('/api/v1/contact/tour-requests');
   }
 
   // Health check
